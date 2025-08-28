@@ -10,6 +10,7 @@ if [[ "${1:-}" == "-s" ]]; then
 fi
 
 source "$(dirname "$0")/packages/prerequisites.sh"
+source "$(dirname "$0")/packages/docker.sh"
 source "$(dirname "$0")/packages/vscode.sh"
 source "$(dirname "$0")/packages/windsurf.sh"
 source "$(dirname "$0")/packages/slack.sh"

@@ -14,8 +14,8 @@ done
 if [ ${#MISSING_PKGS[@]} -eq 0 ]; then
 	echo "[*] All prerequisites already installed."
 else
-    echo "[*] Updating apt cache..."
-    sudo apt-get update $SIMULATE
+	echo "[*] Updating apt cache..."
+	sudo apt-get update $SIMULATE
 	echo "[*] Installing prerequisites: ${MISSING_PKGS[*]}"
 	sudo apt-get install -y $SIMULATE "${MISSING_PKGS[@]}"
 fi
