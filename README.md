@@ -6,7 +6,7 @@ This repository provides automated scripts and an Ansible playbook to set up a d
 To run the setup in one command, use:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mariugul/system-setup/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mariugul/system-setup/refs/heads/master/install.sh | bash
 ```
 
 This will:
