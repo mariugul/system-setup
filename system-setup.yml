@@ -120,9 +120,10 @@
         append: yes
 
     - name: Install Astral's uv
-      shell: curl -LsSf https://astral.sh/uv/install.sh | sh
+      shell: curl -LsSf https://astral.sh/uv/install.sh | bash
       args:
-        creates: /usr/local/bin/uv
+        creates: ~/.cargo/bin/uv
+      become: no
 
     - name: Install GitHub CLI (gh)
       shell: |
@@ -149,15 +150,17 @@
         update_cache: yes
 
     - name: Install bash-aliases
-      shell: curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash
+      shell: curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash -s -- --replace
       args:
         creates: ~/.bash_aliases
+      become: no
 
     - name: Ensure SSH key exists
       shell: |
         ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f ~/.ssh/id_ed25519 -N ""
       args:
         creates: ~/.ssh/id_ed25519
+      become: no
 
     - name: Check if gh CLI is authenticated
       shell: gh auth status --hostname github.com

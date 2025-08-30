@@ -23,15 +23,21 @@ if ! command -v ansible >/dev/null 2>&1; then
 fi
 
 
-sudo mkdir -p /playbooks
+# Determine which playbook to use
+LOCAL_YML="./system-setup.yml"
 REPO_RAW_URL="https://raw.githubusercontent.com/mariugul/system-setup/refs/heads/master/system-setup.yml"
 TARGET_YML="/playbooks/system-setup.yml"
 
-if [ ! -f "$TARGET_YML" ]; then
-    echo "[*] Downloading system-setup.yml into /playbooks ..."
+if [ -f "$LOCAL_YML" ]; then
+    echo "[*] Using local system-setup.yml..."
+    PLAYBOOK_TO_USE="$LOCAL_YML"
+else
+    echo "[*] Local system-setup.yml not found, downloading from GitHub..."
+    sudo mkdir -p /playbooks
     sudo curl -fsSL "$REPO_RAW_URL" -o "$TARGET_YML"
+    PLAYBOOK_TO_USE="$TARGET_YML"
 fi
 
 # Run Ansible playbook
 echo "[*] Running Ansible playbook..."
-ansible-playbook "$TARGET_YML" --ask-become-pass
+ansible-playbook "$PLAYBOOK_TO_USE" --ask-become-pass
