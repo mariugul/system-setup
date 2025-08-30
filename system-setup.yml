@@ -20,11 +20,17 @@
 
     - name: Setup all repositories and GPG keys
       block:
+        - name: Check if VS Code GPG key exists
+          stat:
+            path: /etc/apt/keyrings/microsoft.gpg
+          register: vscode_gpg_key
+
         - name: Download VS Code GPG key
           get_url:
             url: https://packages.microsoft.com/keys/microsoft.asc
             dest: /tmp/microsoft.asc
             mode: '0644'
+          when: not vscode_gpg_key.stat.exists
 
         - name: Add VS Code GPG key to keyring
           shell: |
@@ -39,11 +45,17 @@
           args:
             creates: /etc/apt/sources.list.d/vscode.list
 
+        - name: Check if Windsurf GPG key exists
+          stat:
+            path: /etc/apt/keyrings/windsurf-stable.gpg
+          register: windsurf_gpg_key
+
         - name: Download Windsurf GPG key
           get_url:
             url: https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/windsurf.gpg
             dest: /tmp/windsurf.asc
             mode: '0644'
+          when: not windsurf_gpg_key.stat.exists
 
         - name: Add Windsurf GPG key to keyring
           shell: |
@@ -58,11 +70,17 @@
           args:
             creates: /etc/apt/sources.list.d/windsurf.list
 
+        - name: Check if Slack GPG key exists
+          stat:
+            path: /etc/apt/keyrings/slack.gpg
+          register: slack_gpg_key
+
         - name: Download Slack GPG key
           get_url:
             url: https://packagecloud.io/slacktechnologies/slack/gpgkey
             dest: /tmp/slack.asc
             mode: '0644'
+          when: not slack_gpg_key.stat.exists
 
         - name: Add Slack GPG key to keyring
           shell: |
@@ -77,11 +95,17 @@
           args:
             creates: /etc/apt/sources.list.d/slack.list
 
+        - name: Check if Docker GPG key exists
+          stat:
+            path: /etc/apt/keyrings/docker.gpg
+          register: docker_gpg_key
+
         - name: Download Docker GPG key
           get_url:
             url: https://download.docker.com/linux/ubuntu/gpg
             dest: /tmp/docker.asc
             mode: '0644'
+          when: not docker_gpg_key.stat.exists
 
         - name: Add Docker GPG key to keyring
           shell: |
@@ -96,11 +120,17 @@
           args:
             creates: /etc/apt/sources.list.d/docker.list
 
+        - name: Check if GitHub CLI GPG key exists
+          stat:
+            path: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+          register: github_gpg_key
+
         - name: Download GitHub CLI GPG key
           get_url:
             url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
             dest: /tmp/githubcli-archive-keyring.gpg
             mode: '0644'
+          when: not github_gpg_key.stat.exists
 
         - name: Install GitHub CLI GPG key to keyring
           shell: sudo install -D -o root -g root -m 644 /tmp/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
