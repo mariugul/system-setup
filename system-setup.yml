@@ -339,10 +339,18 @@
             mode: '0755'
           become: no
 
+        - name: Add GitHub to known hosts
+          shell: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          args:
+            creates: ~/.ssh/known_hosts
+          when: gh_auth_status.rc == 0
+          become: no
+
         - name: Clone bash-aliases repository
           git:
             repo: git@github.com:mariugul/bash-aliases.git
             dest: "/home/{{ ansible_env.SUDO_USER | default(ansible_user_id) }}/src/bash-aliases"
             version: main
+            accept_hostkey: yes
           when: gh_auth_status.rc == 0
           become: no
