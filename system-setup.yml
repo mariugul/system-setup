@@ -19,16 +19,32 @@
         state: present
         update_cache: yes
 
-    - name: Add VS Code GPG key
-      apt_key:
+    - name: Download VS Code GPG key
+      get_url:
         url: https://packages.microsoft.com/keys/microsoft.asc
-        state: present
+        dest: /tmp/microsoft.asc
+        mode: '0644'
+
+    - name: Add VS Code GPG key to keyring
+      shell: |
+        gpg --dearmor < /tmp/microsoft.asc > /tmp/microsoft.gpg
+        sudo install -D -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/keyrings/microsoft.gpg
+      args:
+        creates: /etc/apt/keyrings/microsoft.gpg
 
     - name: Add VS Code repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"
-        state: present
-        filename: vscode
+      shell: |
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/vscode.list
+
+    - name: Clean up temporary VS Code GPG files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/microsoft.asc
+        - /tmp/microsoft.gpg
 
     - name: Install VS Code
       apt:
@@ -78,32 +94,64 @@
         name: windsurf
         state: present
 
-    - name: Add Slack GPG key
-      apt_key:
+    - name: Download Slack GPG key
+      get_url:
         url: https://packagecloud.io/slacktechnologies/slack/gpgkey
-        state: present
+        dest: /tmp/slack.asc
+        mode: '0644'
+
+    - name: Add Slack GPG key to keyring
+      shell: |
+        gpg --dearmor < /tmp/slack.asc > /tmp/slack.gpg
+        sudo install -D -o root -g root -m 644 /tmp/slack.gpg /etc/apt/keyrings/slack.gpg
+      args:
+        creates: /etc/apt/keyrings/slack.gpg
 
     - name: Add Slack repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main"
-        state: present
-        filename: slack
+      shell: |
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/slack.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | sudo tee /etc/apt/sources.list.d/slack.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/slack.list
+
+    - name: Clean up temporary Slack GPG files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/slack.asc
+        - /tmp/slack.gpg
 
     - name: Install Slack
       apt:
         name: slack-desktop
         state: present
 
-    - name: Add Docker GPG key
-      apt_key:
+    - name: Download Docker GPG key
+      get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+        dest: /tmp/docker.asc
+        mode: '0644'
+
+    - name: Add Docker GPG key to keyring
+      shell: |
+        gpg --dearmor < /tmp/docker.asc > /tmp/docker.gpg
+        sudo install -D -o root -g root -m 644 /tmp/docker.gpg /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
 
     - name: Add Docker repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-        state: present
-        filename: docker
+      shell: |
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Clean up temporary Docker GPG files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/docker.asc
+        - /tmp/docker.gpg
 
     - name: Install Docker
       apt:
