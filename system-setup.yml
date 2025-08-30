@@ -149,6 +149,12 @@
         update_cache: yes
 
     - name: Install bash-aliases
-      shell: bash <(curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh)
+      shell: curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash
       args:
         creates: ~/.bash_aliases
+
+    - name: Ensure SSH key exists
+      shell: |
+        ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f ~/.ssh/id_ed25519 -N ""
+      args:
+        creates: ~/.ssh/id_ed25519
