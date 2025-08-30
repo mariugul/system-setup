@@ -5,7 +5,6 @@
     - name: Install prerequisites
       apt:
         name:
-          - curl
           - wget
           - gpg
           - apt-transport-https
@@ -266,10 +265,16 @@
             name: python3-dev
             state: present
 
+        - name: Check if uv is already installed
+          command: which uv
+          register: uv_check
+          failed_when: false
+          changed_when: false
+          become: no
+
         - name: Install Astral's uv
           shell: curl -LsSf https://astral.sh/uv/install.sh | bash
-          args:
-            creates: ~/.cargo/bin/uv
+          when: uv_check.rc != 0
           become: no
 
     - name: Configure user environment
