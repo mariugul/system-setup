@@ -1,24 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Check if any packages need to be installed
+NEED_UPDATE=false
+
+if ! command -v curl >/dev/null 2>&1; then
+    NEED_UPDATE=true
+fi
+
+if ! command -v ansible >/dev/null 2>&1; then
+    NEED_UPDATE=true
+fi
+
+# Update package list only if needed
+if [ "$NEED_UPDATE" = true ]; then
+    echo "[*] Updating package list..."
+    sudo apt-get update
+fi
+
 # Install curl if not present
 if ! command -v curl >/dev/null 2>&1; then
     echo "[*] Installing curl..."
-    sudo apt-get update
     sudo apt-get install -y curl
-fi
-
-# Install pip if not present
-if ! command -v pip3 >/dev/null 2>&1; then
-    echo "[*] Installing pip3..."
-    sudo apt-get update
-    sudo apt-get install -y python3-pip
 fi
 
 # Install Ansible system-wide with apt
 if ! command -v ansible >/dev/null 2>&1; then
     echo "[*] Installing Ansible with apt..."
-    sudo apt-get update
     sudo apt-get install -y ansible
 fi
 
