@@ -158,3 +158,25 @@
         ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f ~/.ssh/id_ed25519 -N ""
       args:
         creates: ~/.ssh/id_ed25519
+
+    - name: Check if gh CLI is authenticated
+      shell: gh auth status --hostname github.com
+      register: gh_auth_status
+      ignore_errors: true
+
+    - name: Authenticate gh CLI with GitHub if not already
+      shell: gh auth login --hostname github.com --web
+      when: gh_auth_status.rc != 0
+      args:
+        creates: ~/.config/gh/hosts.yml
+
+    - name: Check if SSH key is already uploaded to GitHub
+      shell: gh ssh-key list --json title,key | grep -F "$(cat ~/.ssh/id_ed25519.pub | cut -d' ' -f2)"
+      register: gh_ssh_key_exists
+      ignore_errors: true
+
+    - name: Upload SSH key to GitHub if not present
+      shell: gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
+      when: gh_ssh_key_exists.rc != 0
+      args:
+        creates: ~/.ssh/id_ed25519.pub
