@@ -22,18 +22,9 @@ if ! command -v ansible >/dev/null 2>&1; then
     sudo apt-get install -y ansible
 fi
 
-# Download system-setup.yml with curl
-REPO_RAW_URL="https://raw.githubusercontent.com/mariugul/system-setup/main/system-setup.yml"
-TARGET_YML="system-setup.yml"
-
-if [ ! -f "$TARGET_YML" ]; then
-    echo "[*] Downloading system-setup.yml..."
-    curl -fsSL "$REPO_RAW_URL" -o "$TARGET_YML"
-fi
-
 
 sudo mkdir -p /playbooks
-REPO_RAW_URL="https://raw.githubusercontent.com/mariugul/system-setup/main/ansible/system-setup.yml"
+REPO_RAW_URL="https://raw.githubusercontent.com/mariugul/system-setup/refs/heads/master/system-setup.yml"
 TARGET_YML="/playbooks/system-setup.yml"
 
 if [ ! -f "$TARGET_YML" ]; then
