@@ -1,31 +1,32 @@
 ---
-- hosts: localhost
-  become: yes
+- name: System setup playbook
+  hosts: localhost
+  become: true
   tasks:
     - name: Install prerequisites
-      apt:
+      ansible.builtin.apt:
         name:
           - wget
           - gpg
           - apt-transport-https
           - software-properties-common
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Install git
-      apt:
+      ansible.builtin.apt:
         name: git
         state: present
 
     - name: Setup all repositories and GPG keys
       block:
         - name: Check if VS Code GPG key exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/keyrings/microsoft.gpg
           register: vscode_gpg_key
 
         - name: Download VS Code GPG key
-          get_url:
+          ansible.builtin.get_url:
             url: https://packages.microsoft.com/keys/microsoft.asc
             dest: /tmp/microsoft.asc
             mode: '0644'
@@ -33,7 +34,8 @@
           register: vscode_gpg_downloaded
 
         - name: Add VS Code GPG key to keyring
-          shell: |
+          ansible.builtin.shell: |
+            set -o pipefail
             gpg --dearmor < /tmp/microsoft.asc > /tmp/microsoft.gpg
             sudo install -D -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/keyrings/microsoft.gpg
           args:
@@ -41,23 +43,26 @@
           when: not vscode_gpg_key.stat.exists
 
         - name: Check if VS Code repository exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/sources.list.d/vscode.list
           register: vscode_repo
 
         - name: Add VS Code repository
-          shell: |
-            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+          ansible.builtin.shell: |
+            set -o pipefail
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | \
+              sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
           when: not vscode_repo.stat.exists
           register: vscode_repo_added
+          changed_when: true
 
         - name: Check if Windsurf GPG key exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/keyrings/windsurf-stable.gpg
           register: windsurf_gpg_key
 
         - name: Download Windsurf GPG key
-          get_url:
+          ansible.builtin.get_url:
             url: https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/windsurf.gpg
             dest: /tmp/windsurf.asc
             mode: '0644'
@@ -65,7 +70,8 @@
           register: windsurf_gpg_downloaded
 
         - name: Add Windsurf GPG key to keyring
-          shell: |
+          ansible.builtin.shell: |
+            set -o pipefail
             gpg --dearmor < /tmp/windsurf.asc > /tmp/windsurf.gpg
             sudo install -D -o root -g root -m 644 /tmp/windsurf.gpg /etc/apt/keyrings/windsurf-stable.gpg
           args:
@@ -73,23 +79,27 @@
           when: not windsurf_gpg_key.stat.exists
 
         - name: Check if Windsurf repository exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/sources.list.d/windsurf.list
           register: windsurf_repo
 
         - name: Add Windsurf repository
-          shell: |
-            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main" | sudo tee /etc/apt/sources.list.d/windsurf.list > /dev/null
+          ansible.builtin.shell: |
+            set -o pipefail
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] \
+              https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main" | \
+              sudo tee /etc/apt/sources.list.d/windsurf.list > /dev/null
           when: not windsurf_repo.stat.exists
           register: windsurf_repo_added
+          changed_when: true
 
         - name: Check if Slack GPG key exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/keyrings/slack.gpg
           register: slack_gpg_key
 
         - name: Download Slack GPG key
-          get_url:
+          ansible.builtin.get_url:
             url: https://packagecloud.io/slacktechnologies/slack/gpgkey
             dest: /tmp/slack.asc
             mode: '0644'
@@ -97,7 +107,8 @@
           register: slack_gpg_downloaded
 
         - name: Add Slack GPG key to keyring
-          shell: |
+          ansible.builtin.shell: |
+            set -o pipefail
             gpg --dearmor < /tmp/slack.asc > /tmp/slack.gpg
             sudo install -D -o root -g root -m 644 /tmp/slack.gpg /etc/apt/keyrings/slack.gpg
           args:
@@ -105,23 +116,27 @@
           when: not slack_gpg_key.stat.exists
 
         - name: Check if Slack repository exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/sources.list.d/slack.list
           register: slack_repo
 
         - name: Add Slack repository
-          shell: |
-            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/slack.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | sudo tee /etc/apt/sources.list.d/slack.list > /dev/null
+          ansible.builtin.shell: |
+            set -o pipefail
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/slack.gpg] \
+              https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | \
+              sudo tee /etc/apt/sources.list.d/slack.list > /dev/null
           when: not slack_repo.stat.exists
           register: slack_repo_added
+          changed_when: true
 
         - name: Check if Docker GPG key exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/keyrings/docker.gpg
           register: docker_gpg_key
 
         - name: Download Docker GPG key
-          get_url:
+          ansible.builtin.get_url:
             url: https://download.docker.com/linux/ubuntu/gpg
             dest: /tmp/docker.asc
             mode: '0644'
@@ -129,7 +144,8 @@
           register: docker_gpg_downloaded
 
         - name: Add Docker GPG key to keyring
-          shell: |
+          ansible.builtin.shell: |
+            set -o pipefail
             gpg --dearmor < /tmp/docker.asc > /tmp/docker.gpg
             sudo install -D -o root -g root -m 644 /tmp/docker.gpg /etc/apt/keyrings/docker.gpg
           args:
@@ -137,23 +153,27 @@
           when: not docker_gpg_key.stat.exists
 
         - name: Check if Docker repository exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/sources.list.d/docker.list
           register: docker_repo
 
         - name: Add Docker repository
-          shell: |
-            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          ansible.builtin.shell: |
+            set -o pipefail
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] \
+              https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" | \
+              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
           when: not docker_repo.stat.exists
           register: docker_repo_added
+          changed_when: true
 
         - name: Check if GitHub CLI GPG key exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/keyrings/githubcli-archive-keyring.gpg
           register: github_gpg_key
 
         - name: Download GitHub CLI GPG key
-          get_url:
+          ansible.builtin.get_url:
             url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
             dest: /tmp/githubcli-archive-keyring.gpg
             mode: '0644'
@@ -161,24 +181,32 @@
           register: github_gpg_downloaded
 
         - name: Install GitHub CLI GPG key to keyring
-          shell: sudo install -D -o root -g root -m 644 /tmp/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+          ansible.builtin.command: >
+            sudo install -D -o root -g root -m 644
+            /tmp/githubcli-archive-keyring.gpg
+            /etc/apt/keyrings/githubcli-archive-keyring.gpg
           args:
             creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
           when: not github_gpg_key.stat.exists
 
         - name: Check if GitHub CLI repository exists
-          stat:
+          ansible.builtin.stat:
             path: /etc/apt/sources.list.d/github-cli.list
           register: github_repo
 
         - name: Add GitHub CLI repository
-          shell: |
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          ansible.builtin.shell: |
+            set -o pipefail
+            echo "deb [arch=$(dpkg --print-architecture) \
+              signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] \
+              https://cli.github.com/packages stable main" | \
+              sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
           when: not github_repo.stat.exists
           register: github_repo_added
+          changed_when: true
 
         - name: Clean up all temporary GPG files
-          file:
+          ansible.builtin.file:
             path: "{{ item }}"
             state: absent
           loop:
@@ -199,8 +227,8 @@
             (github_gpg_downloaded is defined and not github_gpg_downloaded.skipped | default(false))
 
     - name: Update apt cache after adding all repositories
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
       when: >
         (vscode_repo_added is changed) or
         (windsurf_repo_added is changed) or
@@ -209,24 +237,24 @@
         (github_repo_added is changed)
 
     - name: Install VS Code
-      apt:
+      ansible.builtin.apt:
         name: code
         state: present
 
     - name: Install Windsurf
-      apt:
+      ansible.builtin.apt:
         name: windsurf
         state: present
 
     - name: Install Slack
-      apt:
+      ansible.builtin.apt:
         name: slack-desktop
         state: present
 
     - name: Install Docker
       block:
         - name: Install Docker packages
-          apt:
+          ansible.builtin.apt:
             name:
               - docker-ce
               - docker-ce-cli
@@ -234,85 +262,95 @@
             state: present
 
         - name: Get the actual user from environment
-          set_fact:
+          ansible.builtin.set_fact:
             actual_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) | default(ansible_user_id) }}"
 
         - name: Add user to docker group
-          user:
+          ansible.builtin.user:
             name: "{{ actual_user }}"
             groups: docker
-            append: yes
+            append: true
 
         - name: Start and enable Docker service
-          systemd:
+          ansible.builtin.systemd:
             name: docker
             state: started
-            enabled: yes
+            enabled: true
+            daemon_reload: true
 
         - name: Verify Docker group assignment
-          shell: sg docker -c "docker --version"
+          ansible.builtin.command: sg docker -c "docker --version"
           register: docker_group_test
-          become: no
-          ignore_errors: yes
+          become: false
+          ignore_errors: true
+          changed_when: false
 
         - name: Display Docker group status
-          debug:
-            msg: "Docker group assignment {{ 'successful' if docker_group_test.rc == 0 else 'failed' }}. Note: Run 'newgrp docker' or logout/login to use Docker without sudo in your current session."
+          ansible.builtin.debug:
+            msg: >
+              Docker group assignment {{ 'successful' if docker_group_test.rc == 0 else 'failed' }}.
+              Note: Run 'newgrp docker' or logout/login to use Docker without sudo in your current session.
 
     - name: Install GitHub CLI
-      apt:
+      ansible.builtin.apt:
         name: gh
         state: present
 
     - name: Install Python development tools
       block:
         - name: Install python3-venv
-          apt:
+          ansible.builtin.apt:
             name: python3-venv
             state: present
 
         - name: Install python3-dev
-          apt:
+          ansible.builtin.apt:
             name: python3-dev
             state: present
 
         - name: Check if uv is already installed
-          command: which uv
+          ansible.builtin.command: which uv
           register: uv_check
           failed_when: false
           changed_when: false
-          become: no
+          become: false
 
         - name: Install Astral's uv
-          shell: curl -LsSf https://astral.sh/uv/install.sh | bash
+          ansible.builtin.shell: |
+            set -o pipefail
+            curl -LsSf https://astral.sh/uv/install.sh | sh
           when: uv_check.rc != 0
-          become: no
+          become: false
+          changed_when: true
 
     - name: Configure user environment
       block:
         - name: Install bash-aliases
-          shell: curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash -s -- --replace
+          ansible.builtin.shell: |
+            set -o pipefail
+            curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash -s -- --replace
           args:
             creates: ~/.bash_aliases
-          become: no
+          become: false
 
         - name: Ensure SSH key exists
-          shell: |
+          ansible.builtin.shell: |
             ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f ~/.ssh/id_ed25519 -N ""
           args:
             creates: ~/.ssh/id_ed25519
-          become: no
+          become: false
 
     - name: Setup GitHub integration
       block:
         - name: Check if gh CLI is authenticated
-          shell: gh auth status --hostname github.com
+          ansible.builtin.command: gh auth status --hostname github.com
           register: gh_auth_status
           failed_when: false
           changed_when: false
+          become: false
 
         - name: Display GitHub authentication status
-          debug:
+          ansible.builtin.debug:
             msg: |
               {% if gh_auth_status.rc == 0 %}
               GitHub CLI is already authenticated.
@@ -321,36 +359,42 @@
               {% endif %}
 
         - name: Check if SSH key is already uploaded to GitHub
-          shell: gh ssh-key list --json title,key | grep -F "$(cat ~/.ssh/id_ed25519.pub | cut -d' ' -f2)"
+          ansible.builtin.shell: |
+            set -o pipefail
+            gh ssh-key list --json title,key | grep -F "$(cat ~/.ssh/id_ed25519.pub | cut -d' ' -f2)"
           when: gh_auth_status.rc == 0
           register: gh_ssh_key_exists
           ignore_errors: true
+          become: false
+          changed_when: false
 
         - name: Upload SSH key to GitHub if not present
-          shell: gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
+          ansible.builtin.shell: gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
           when: gh_auth_status.rc == 0 and (gh_ssh_key_exists is not defined or gh_ssh_key_exists.rc != 0)
+          become: false
+          changed_when: true
 
     - name: Setup development directories and repositories
       block:
         - name: Create ~/src directory for repositories
-          file:
+          ansible.builtin.file:
             path: "/home/{{ ansible_env.SUDO_USER | default(ansible_user_id) }}/src"
             state: directory
             mode: '0755'
-          become: no
+          become: false
 
         - name: Add GitHub to known hosts
-          shell: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          ansible.builtin.shell: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
           args:
             creates: ~/.ssh/known_hosts
           when: gh_auth_status.rc == 0
-          become: no
+          become: false
 
         - name: Clone bash-aliases repository
-          git:
+          ansible.builtin.git:
             repo: git@github.com:mariugul/bash-aliases.git
             dest: "/home/{{ ansible_env.SUDO_USER | default(ansible_user_id) }}/src/bash-aliases"
             version: main
-            accept_hostkey: yes
+            accept_hostkey: true
           when: gh_auth_status.rc == 0
-          become: no
+          become: false
