@@ -38,12 +38,17 @@
             sudo install -D -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/keyrings/microsoft.gpg
           args:
             creates: /etc/apt/keyrings/microsoft.gpg
+          when: not vscode_gpg_key.stat.exists
+
+        - name: Check if VS Code repository exists
+          stat:
+            path: /etc/apt/sources.list.d/vscode.list
+          register: vscode_repo
 
         - name: Add VS Code repository
           shell: |
             echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
-          args:
-            creates: /etc/apt/sources.list.d/vscode.list
+          when: not vscode_repo.stat.exists
 
         - name: Check if Windsurf GPG key exists
           stat:
@@ -63,12 +68,17 @@
             sudo install -D -o root -g root -m 644 /tmp/windsurf.gpg /etc/apt/keyrings/windsurf-stable.gpg
           args:
             creates: /etc/apt/keyrings/windsurf-stable.gpg
+          when: not windsurf_gpg_key.stat.exists
+
+        - name: Check if Windsurf repository exists
+          stat:
+            path: /etc/apt/sources.list.d/windsurf.list
+          register: windsurf_repo
 
         - name: Add Windsurf repository
           shell: |
             echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main" | sudo tee /etc/apt/sources.list.d/windsurf.list > /dev/null
-          args:
-            creates: /etc/apt/sources.list.d/windsurf.list
+          when: not windsurf_repo.stat.exists
 
         - name: Check if Slack GPG key exists
           stat:
@@ -88,12 +98,17 @@
             sudo install -D -o root -g root -m 644 /tmp/slack.gpg /etc/apt/keyrings/slack.gpg
           args:
             creates: /etc/apt/keyrings/slack.gpg
+          when: not slack_gpg_key.stat.exists
+
+        - name: Check if Slack repository exists
+          stat:
+            path: /etc/apt/sources.list.d/slack.list
+          register: slack_repo
 
         - name: Add Slack repository
           shell: |
             echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/slack.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | sudo tee /etc/apt/sources.list.d/slack.list > /dev/null
-          args:
-            creates: /etc/apt/sources.list.d/slack.list
+          when: not slack_repo.stat.exists
 
         - name: Check if Docker GPG key exists
           stat:
@@ -113,12 +128,17 @@
             sudo install -D -o root -g root -m 644 /tmp/docker.gpg /etc/apt/keyrings/docker.gpg
           args:
             creates: /etc/apt/keyrings/docker.gpg
+          when: not docker_gpg_key.stat.exists
+
+        - name: Check if Docker repository exists
+          stat:
+            path: /etc/apt/sources.list.d/docker.list
+          register: docker_repo
 
         - name: Add Docker repository
           shell: |
             echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-          args:
-            creates: /etc/apt/sources.list.d/docker.list
+          when: not docker_repo.stat.exists
 
         - name: Check if GitHub CLI GPG key exists
           stat:
@@ -136,12 +156,17 @@
           shell: sudo install -D -o root -g root -m 644 /tmp/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
           args:
             creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+          when: not github_gpg_key.stat.exists
+
+        - name: Check if GitHub CLI repository exists
+          stat:
+            path: /etc/apt/sources.list.d/github-cli.list
+          register: github_repo
 
         - name: Add GitHub CLI repository
           shell: |
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          args:
-            creates: /etc/apt/sources.list.d/github-cli.list
+          when: not github_repo.stat.exists
 
         - name: Clean up all temporary GPG files
           file:
