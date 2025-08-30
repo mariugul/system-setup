@@ -13,6 +13,12 @@
         state: present
         update_cache: yes
 
+    - name: Install git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
     - name: Add VS Code GPG key
       apt_key:
         url: https://packages.microsoft.com/keys/microsoft.asc
@@ -112,3 +118,32 @@
         name: "{{ lookup('env','USER') }}"
         groups: docker
         append: yes
+
+    - name: Install Astral's uv
+      shell: curl -LsSf https://astral.sh/uv/install.sh | sh
+      args:
+        creates: /usr/local/bin/uv
+
+    - name: Install GitHub CLI (gh)
+      shell: |
+        type -p curl >/dev/null || sudo apt-get install curl -y
+        sudo mkdir -p -m 0755 /etc/apt/keyrings
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/etc/apt/keyrings/githubcli-archive-keyring.gpg
+        sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install gh -y
+      args:
+        creates: /usr/bin/gh
+
+    - name: Install python3-venv
+      apt:
+        name: python3-venv
+        state: present
+        update_cache: yes
+
+    - name: Install python3-dev
+      apt:
+        name: python3-dev
+        state: present
+        update_cache: yes
