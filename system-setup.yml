@@ -51,13 +51,6 @@
         name: code
         state: present
 
-    - name: Ensure wget and gpg are installed for Windsurf
-      apt:
-        name:
-          - wget
-          - gpg
-        state: present
-        update_cache: yes
 
     - name: Download Windsurf GPG key and convert to keyring
       shell: |
@@ -80,10 +73,6 @@
         path: windsurf-stable.gpg
         state: absent
 
-    - name: Ensure apt-transport-https is installed
-      apt:
-        name: apt-transport-https
-        state: present
 
     - name: Update apt cache after adding Windsurf repo
       apt:
@@ -175,7 +164,6 @@
 
     - name: Install GitHub CLI (gh)
       shell: |
-        type -p curl >/dev/null || sudo apt-get install curl -y
         sudo mkdir -p -m 0755 /etc/apt/keyrings
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/etc/apt/keyrings/githubcli-archive-keyring.gpg
         sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
