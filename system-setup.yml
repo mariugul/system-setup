@@ -150,11 +150,31 @@
           - containerd.io
         state: present
 
+    - name: Get the actual user from environment
+      set_fact:
+        actual_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) | default(ansible_user_id) }}"
+
     - name: Add user to docker group
       user:
-        name: "{{ lookup('env','USER') }}"
+        name: "{{ actual_user }}"
         groups: docker
         append: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Verify Docker group assignment
+      shell: sg docker -c "docker --version"
+      register: docker_group_test
+      become: no
+      ignore_errors: yes
+
+    - name: Display Docker group status
+      debug:
+        msg: "Docker group assignment {{ 'successful' if docker_group_test.rc == 0 else 'failed' }}. Note: Run 'newgrp docker' or logout/login to use Docker without sudo in your current session."
 
     - name: Install Astral's uv
       shell: curl -LsSf https://astral.sh/uv/install.sh | bash
