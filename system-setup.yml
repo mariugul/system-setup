@@ -17,9 +17,8 @@
       apt:
         name: git
         state: present
-        update_cache: yes
 
-    - name: Install VS Code
+    - name: Setup all repositories and GPG keys
       block:
         - name: Download VS Code GPG key
           get_url:
@@ -40,22 +39,6 @@
           args:
             creates: /etc/apt/sources.list.d/vscode.list
 
-        - name: Clean up temporary VS Code GPG files
-          file:
-            path: "{{ item }}"
-            state: absent
-          loop:
-            - /tmp/microsoft.asc
-            - /tmp/microsoft.gpg
-
-        - name: Install VS Code package
-          apt:
-            name: code
-            state: present
-
-
-    - name: Install Windsurf
-      block:
         - name: Download Windsurf GPG key
           get_url:
             url: https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/windsurf.gpg
@@ -75,25 +58,6 @@
           args:
             creates: /etc/apt/sources.list.d/windsurf.list
 
-        - name: Clean up temporary Windsurf GPG files
-          file:
-            path: "{{ item }}"
-            state: absent
-          loop:
-            - /tmp/windsurf.asc
-            - /tmp/windsurf.gpg
-
-        - name: Update apt cache after adding Windsurf repo
-          apt:
-            update_cache: yes
-
-        - name: Install Windsurf package
-          apt:
-            name: windsurf
-            state: present
-
-    - name: Install Slack
-      block:
         - name: Download Slack GPG key
           get_url:
             url: https://packagecloud.io/slacktechnologies/slack/gpgkey
@@ -113,21 +77,6 @@
           args:
             creates: /etc/apt/sources.list.d/slack.list
 
-        - name: Clean up temporary Slack GPG files
-          file:
-            path: "{{ item }}"
-            state: absent
-          loop:
-            - /tmp/slack.asc
-            - /tmp/slack.gpg
-
-        - name: Install Slack package
-          apt:
-            name: slack-desktop
-            state: present
-
-    - name: Install Docker
-      block:
         - name: Download Docker GPG key
           get_url:
             url: https://download.docker.com/linux/ubuntu/gpg
@@ -147,14 +96,59 @@
           args:
             creates: /etc/apt/sources.list.d/docker.list
 
-        - name: Clean up temporary Docker GPG files
+        - name: Download GitHub CLI GPG key
+          get_url:
+            url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+            dest: /tmp/githubcli-archive-keyring.gpg
+            mode: '0644'
+
+        - name: Install GitHub CLI GPG key to keyring
+          shell: sudo install -D -o root -g root -m 644 /tmp/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+          args:
+            creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+
+        - name: Add GitHub CLI repository
+          shell: |
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          args:
+            creates: /etc/apt/sources.list.d/github-cli.list
+
+        - name: Clean up all temporary GPG files
           file:
             path: "{{ item }}"
             state: absent
           loop:
+            - /tmp/microsoft.asc
+            - /tmp/microsoft.gpg
+            - /tmp/windsurf.asc
+            - /tmp/windsurf.gpg
+            - /tmp/slack.asc
+            - /tmp/slack.gpg
             - /tmp/docker.asc
             - /tmp/docker.gpg
+            - /tmp/githubcli-archive-keyring.gpg
 
+    - name: Update apt cache after adding all repositories
+      apt:
+        update_cache: yes
+
+    - name: Install VS Code
+      apt:
+        name: code
+        state: present
+
+    - name: Install Windsurf
+      apt:
+        name: windsurf
+        state: present
+
+    - name: Install Slack
+      apt:
+        name: slack-desktop
+        state: present
+
+    - name: Install Docker
+      block:
         - name: Install Docker packages
           apt:
             name:
@@ -189,44 +183,10 @@
           debug:
             msg: "Docker group assignment {{ 'successful' if docker_group_test.rc == 0 else 'failed' }}. Note: Run 'newgrp docker' or logout/login to use Docker without sudo in your current session."
 
-    - name: Install Astral's uv
-      shell: curl -LsSf https://astral.sh/uv/install.sh | bash
-      args:
-        creates: ~/.cargo/bin/uv
-      become: no
-
     - name: Install GitHub CLI
-      block:
-        - name: Download GitHub CLI GPG key
-          get_url:
-            url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
-            dest: /tmp/githubcli-archive-keyring.gpg
-            mode: '0644'
-
-        - name: Install GitHub CLI GPG key to keyring
-          shell: sudo install -D -o root -g root -m 644 /tmp/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
-          args:
-            creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
-
-        - name: Add GitHub CLI repository
-          shell: |
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          args:
-            creates: /etc/apt/sources.list.d/github-cli.list
-
-        - name: Clean up temporary GitHub CLI GPG file
-          file:
-            path: /tmp/githubcli-archive-keyring.gpg
-            state: absent
-
-        - name: Update apt cache after adding GitHub CLI repo
-          apt:
-            update_cache: yes
-
-        - name: Install GitHub CLI package
-          apt:
-            name: gh
-            state: present
+      apt:
+        name: gh
+        state: present
 
     - name: Install Python development tools
       block:
@@ -234,13 +194,11 @@
           apt:
             name: python3-venv
             state: present
-            update_cache: yes
 
         - name: Install python3-dev
           apt:
             name: python3-dev
             state: present
-            update_cache: yes
 
         - name: Install Astral's uv
           shell: curl -LsSf https://astral.sh/uv/install.sh | bash
