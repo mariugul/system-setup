@@ -1,41 +1,36 @@
 # System Setup Scripts for Debian/Ubuntu
 
-This repository provides automated scripts to set up a development environment on Debian-based systems (including Ubuntu). It installs essential tools and applications, and includes a test harness to verify the installation process in a clean container.
+This repository provides automated scripts and an Ansible playbook to set up a development environment on Debian-based systems.
+
+## One-off Quick Install
+To run the setup in one command, use:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mariugul/system-setup/refs/heads/master/install.sh | bash
+```
+
+This will:
+- Install curl, pip, and Ansible (system-wide)
+- Download the Ansible playbook to `/playbooks`
+- Run the playbook to set up your system
 
 ## Features
-- Modular install scripts for each package (VS Code, Windsurf, Slack, prerequisites)
-- Main install script to run all package scripts
-- Docker-based test system to verify installation in a fresh Ubuntu container
-- Dry-run support (`-s` flag) for safe simulation of package installation
+- Modular install scripts for each package
+- Ansible playbook for idempotent, robust setup
+- Docker-based test system (optional)
 
-## Usage
-### Install on your system
+## Manual Usage
+Clone the repo and run:
 ```bash
-./debian/install-packages.sh
+./install.sh
 ```
-
-To simulate (dry run) without making changes:
-```bash
-./debian/install-packages.sh -s
-```
-
-### Test in Docker
-Run the install script in a clean Ubuntu container:
-```bash
-cd debian
-./test/install.sh
-```
-
-## Adding New Packages
-1. Create a new script in `debian/packages/` (e.g., `mypackage.sh`).
-2. Add a `source "$(dirname "$0")/packages/mypackage.sh"` line to `install-packages.sh`.
 
 ## Requirements
 - Debian/Ubuntu system
-- Docker (for testing)
+- sudo privileges
 
 ## License
 MIT
 
 ## Author
-Marius Gulbrandsen
+Your Name
