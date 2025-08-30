@@ -1,0 +1,114 @@
+---
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - curl
+          - wget
+          - gpg
+          - apt-transport-https
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Add VS Code GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add VS Code repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"
+        state: present
+        filename: vscode
+
+    - name: Install VS Code
+      apt:
+        name: code
+        state: present
+
+    - name: Ensure wget and gpg are installed for Windsurf
+      apt:
+        name:
+          - wget
+          - gpg
+        state: present
+        update_cache: yes
+
+    - name: Download Windsurf GPG key and convert to keyring
+      shell: |
+        wget -qO- "https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/windsurf.gpg" | gpg --dearmor > windsurf-stable.gpg
+      args:
+        creates: windsurf-stable.gpg
+
+    - name: Install Windsurf keyring
+      shell: sudo install -D -o root -g root -m 644 windsurf-stable.gpg /etc/apt/keyrings/windsurf-stable.gpg
+      args:
+        creates: /etc/apt/keyrings/windsurf-stable.gpg
+
+    - name: Add Windsurf repository
+      shell: echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main" | sudo tee /etc/apt/sources.list.d/windsurf.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/windsurf.list
+
+    - name: Remove temporary Windsurf GPG file
+      file:
+        path: windsurf-stable.gpg
+        state: absent
+
+    - name: Ensure apt-transport-https is installed
+      apt:
+        name: apt-transport-https
+        state: present
+
+    - name: Update apt cache after adding Windsurf repo
+      apt:
+        update_cache: yes
+
+    - name: Install Windsurf
+      apt:
+        name: windsurf
+        state: present
+
+    - name: Add Slack GPG key
+      apt_key:
+        url: https://packagecloud.io/slacktechnologies/slack/gpgkey
+        state: present
+
+    - name: Add Slack repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main"
+        state: present
+        filename: slack
+
+    - name: Install Slack
+      apt:
+        name: slack-desktop
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ lookup('env','USER') }}"
+        groups: docker
+        append: yes
