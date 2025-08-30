@@ -329,3 +329,20 @@
         - name: Upload SSH key to GitHub if not present
           shell: gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
           when: gh_auth_status.rc == 0 and (gh_ssh_key_exists is not defined or gh_ssh_key_exists.rc != 0)
+
+    - name: Setup development directories and repositories
+      block:
+        - name: Create ~/src directory for repositories
+          file:
+            path: "/home/{{ ansible_env.SUDO_USER | default(ansible_user_id) }}/src"
+            state: directory
+            mode: '0755'
+          become: no
+
+        - name: Clone bash-aliases repository
+          git:
+            repo: git@github.com:mariugul/bash-aliases.git
+            dest: "/home/{{ ansible_env.SUDO_USER | default(ansible_user_id) }}/src/bash-aliases"
+            version: main
+          when: gh_auth_status.rc == 0
+          become: no
