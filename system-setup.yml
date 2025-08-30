@@ -19,162 +19,175 @@
         state: present
         update_cache: yes
 
-    - name: Download VS Code GPG key
-      get_url:
-        url: https://packages.microsoft.com/keys/microsoft.asc
-        dest: /tmp/microsoft.asc
-        mode: '0644'
-
-    - name: Add VS Code GPG key to keyring
-      shell: |
-        gpg --dearmor < /tmp/microsoft.asc > /tmp/microsoft.gpg
-        sudo install -D -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/keyrings/microsoft.gpg
-      args:
-        creates: /etc/apt/keyrings/microsoft.gpg
-
-    - name: Add VS Code repository
-      shell: |
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
-      args:
-        creates: /etc/apt/sources.list.d/vscode.list
-
-    - name: Clean up temporary VS Code GPG files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /tmp/microsoft.asc
-        - /tmp/microsoft.gpg
-
     - name: Install VS Code
-      apt:
-        name: code
-        state: present
+      block:
+        - name: Download VS Code GPG key
+          get_url:
+            url: https://packages.microsoft.com/keys/microsoft.asc
+            dest: /tmp/microsoft.asc
+            mode: '0644'
 
+        - name: Add VS Code GPG key to keyring
+          shell: |
+            gpg --dearmor < /tmp/microsoft.asc > /tmp/microsoft.gpg
+            sudo install -D -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/keyrings/microsoft.gpg
+          args:
+            creates: /etc/apt/keyrings/microsoft.gpg
 
-    - name: Download Windsurf GPG key and convert to keyring
-      shell: |
-        wget -qO- "https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/windsurf.gpg" | gpg --dearmor > windsurf-stable.gpg
-      args:
-        creates: windsurf-stable.gpg
+        - name: Add VS Code repository
+          shell: |
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+          args:
+            creates: /etc/apt/sources.list.d/vscode.list
 
-    - name: Install Windsurf keyring
-      shell: sudo install -D -o root -g root -m 644 windsurf-stable.gpg /etc/apt/keyrings/windsurf-stable.gpg
-      args:
-        creates: /etc/apt/keyrings/windsurf-stable.gpg
+        - name: Clean up temporary VS Code GPG files
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/microsoft.asc
+            - /tmp/microsoft.gpg
 
-    - name: Add Windsurf repository
-      shell: echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main" | sudo tee /etc/apt/sources.list.d/windsurf.list > /dev/null
-      args:
-        creates: /etc/apt/sources.list.d/windsurf.list
+        - name: Install VS Code package
+          apt:
+            name: code
+            state: present
 
-    - name: Remove temporary Windsurf GPG file
-      file:
-        path: windsurf-stable.gpg
-        state: absent
-
-
-    - name: Update apt cache after adding Windsurf repo
-      apt:
-        update_cache: yes
 
     - name: Install Windsurf
-      apt:
-        name: windsurf
-        state: present
+      block:
+        - name: Download Windsurf GPG key
+          get_url:
+            url: https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/windsurf.gpg
+            dest: /tmp/windsurf.asc
+            mode: '0644'
 
-    - name: Download Slack GPG key
-      get_url:
-        url: https://packagecloud.io/slacktechnologies/slack/gpgkey
-        dest: /tmp/slack.asc
-        mode: '0644'
+        - name: Add Windsurf GPG key to keyring
+          shell: |
+            gpg --dearmor < /tmp/windsurf.asc > /tmp/windsurf.gpg
+            sudo install -D -o root -g root -m 644 /tmp/windsurf.gpg /etc/apt/keyrings/windsurf-stable.gpg
+          args:
+            creates: /etc/apt/keyrings/windsurf-stable.gpg
 
-    - name: Add Slack GPG key to keyring
-      shell: |
-        gpg --dearmor < /tmp/slack.asc > /tmp/slack.gpg
-        sudo install -D -o root -g root -m 644 /tmp/slack.gpg /etc/apt/keyrings/slack.gpg
-      args:
-        creates: /etc/apt/keyrings/slack.gpg
+        - name: Add Windsurf repository
+          shell: |
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main" | sudo tee /etc/apt/sources.list.d/windsurf.list > /dev/null
+          args:
+            creates: /etc/apt/sources.list.d/windsurf.list
 
-    - name: Add Slack repository
-      shell: |
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/slack.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | sudo tee /etc/apt/sources.list.d/slack.list > /dev/null
-      args:
-        creates: /etc/apt/sources.list.d/slack.list
+        - name: Clean up temporary Windsurf GPG files
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/windsurf.asc
+            - /tmp/windsurf.gpg
 
-    - name: Clean up temporary Slack GPG files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /tmp/slack.asc
-        - /tmp/slack.gpg
+        - name: Update apt cache after adding Windsurf repo
+          apt:
+            update_cache: yes
+
+        - name: Install Windsurf package
+          apt:
+            name: windsurf
+            state: present
 
     - name: Install Slack
-      apt:
-        name: slack-desktop
-        state: present
+      block:
+        - name: Download Slack GPG key
+          get_url:
+            url: https://packagecloud.io/slacktechnologies/slack/gpgkey
+            dest: /tmp/slack.asc
+            mode: '0644'
 
-    - name: Download Docker GPG key
-      get_url:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /tmp/docker.asc
-        mode: '0644'
+        - name: Add Slack GPG key to keyring
+          shell: |
+            gpg --dearmor < /tmp/slack.asc > /tmp/slack.gpg
+            sudo install -D -o root -g root -m 644 /tmp/slack.gpg /etc/apt/keyrings/slack.gpg
+          args:
+            creates: /etc/apt/keyrings/slack.gpg
 
-    - name: Add Docker GPG key to keyring
-      shell: |
-        gpg --dearmor < /tmp/docker.asc > /tmp/docker.gpg
-        sudo install -D -o root -g root -m 644 /tmp/docker.gpg /etc/apt/keyrings/docker.gpg
-      args:
-        creates: /etc/apt/keyrings/docker.gpg
+        - name: Add Slack repository
+          shell: |
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/slack.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main" | sudo tee /etc/apt/sources.list.d/slack.list > /dev/null
+          args:
+            creates: /etc/apt/sources.list.d/slack.list
 
-    - name: Add Docker repository
-      shell: |
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      args:
-        creates: /etc/apt/sources.list.d/docker.list
+        - name: Clean up temporary Slack GPG files
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/slack.asc
+            - /tmp/slack.gpg
 
-    - name: Clean up temporary Docker GPG files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /tmp/docker.asc
-        - /tmp/docker.gpg
+        - name: Install Slack package
+          apt:
+            name: slack-desktop
+            state: present
 
     - name: Install Docker
-      apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-        state: present
+      block:
+        - name: Download Docker GPG key
+          get_url:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            dest: /tmp/docker.asc
+            mode: '0644'
 
-    - name: Get the actual user from environment
-      set_fact:
-        actual_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) | default(ansible_user_id) }}"
+        - name: Add Docker GPG key to keyring
+          shell: |
+            gpg --dearmor < /tmp/docker.asc > /tmp/docker.gpg
+            sudo install -D -o root -g root -m 644 /tmp/docker.gpg /etc/apt/keyrings/docker.gpg
+          args:
+            creates: /etc/apt/keyrings/docker.gpg
 
-    - name: Add user to docker group
-      user:
-        name: "{{ actual_user }}"
-        groups: docker
-        append: yes
+        - name: Add Docker repository
+          shell: |
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          args:
+            creates: /etc/apt/sources.list.d/docker.list
 
-    - name: Start and enable Docker service
-      systemd:
-        name: docker
-        state: started
-        enabled: yes
+        - name: Clean up temporary Docker GPG files
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/docker.asc
+            - /tmp/docker.gpg
 
-    - name: Verify Docker group assignment
-      shell: sg docker -c "docker --version"
-      register: docker_group_test
-      become: no
-      ignore_errors: yes
+        - name: Install Docker packages
+          apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+            state: present
 
-    - name: Display Docker group status
-      debug:
-        msg: "Docker group assignment {{ 'successful' if docker_group_test.rc == 0 else 'failed' }}. Note: Run 'newgrp docker' or logout/login to use Docker without sudo in your current session."
+        - name: Get the actual user from environment
+          set_fact:
+            actual_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) | default(ansible_user_id) }}"
+
+        - name: Add user to docker group
+          user:
+            name: "{{ actual_user }}"
+            groups: docker
+            append: yes
+
+        - name: Start and enable Docker service
+          systemd:
+            name: docker
+            state: started
+            enabled: yes
+
+        - name: Verify Docker group assignment
+          shell: sg docker -c "docker --version"
+          register: docker_group_test
+          become: no
+          ignore_errors: yes
+
+        - name: Display Docker group status
+          debug:
+            msg: "Docker group assignment {{ 'successful' if docker_group_test.rc == 0 else 'failed' }}. Note: Run 'newgrp docker' or logout/login to use Docker without sudo in your current session."
 
     - name: Install Astral's uv
       shell: curl -LsSf https://astral.sh/uv/install.sh | bash
@@ -182,60 +195,94 @@
         creates: ~/.cargo/bin/uv
       become: no
 
-    - name: Install GitHub CLI (gh)
-      shell: |
-        sudo mkdir -p -m 0755 /etc/apt/keyrings
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/etc/apt/keyrings/githubcli-archive-keyring.gpg
-        sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install gh -y
-      args:
-        creates: /usr/bin/gh
+    - name: Install GitHub CLI
+      block:
+        - name: Download GitHub CLI GPG key
+          get_url:
+            url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+            dest: /tmp/githubcli-archive-keyring.gpg
+            mode: '0644'
 
-    - name: Install python3-venv
-      apt:
-        name: python3-venv
-        state: present
-        update_cache: yes
+        - name: Install GitHub CLI GPG key to keyring
+          shell: sudo install -D -o root -g root -m 644 /tmp/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+          args:
+            creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
 
-    - name: Install python3-dev
-      apt:
-        name: python3-dev
-        state: present
-        update_cache: yes
+        - name: Add GitHub CLI repository
+          shell: |
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          args:
+            creates: /etc/apt/sources.list.d/github-cli.list
 
-    - name: Install bash-aliases
-      shell: curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash -s -- --replace
-      args:
-        creates: ~/.bash_aliases
-      become: no
+        - name: Clean up temporary GitHub CLI GPG file
+          file:
+            path: /tmp/githubcli-archive-keyring.gpg
+            state: absent
 
-    - name: Ensure SSH key exists
-      shell: |
-        ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f ~/.ssh/id_ed25519 -N ""
-      args:
-        creates: ~/.ssh/id_ed25519
-      become: no
+        - name: Update apt cache after adding GitHub CLI repo
+          apt:
+            update_cache: yes
 
-    - name: Check if gh CLI is authenticated
-      shell: gh auth status --hostname github.com
-      register: gh_auth_status
-      ignore_errors: true
+        - name: Install GitHub CLI package
+          apt:
+            name: gh
+            state: present
 
-    - name: Authenticate gh CLI with GitHub if not already
-      shell: gh auth login --hostname github.com --web
-      when: gh_auth_status.rc != 0
-      args:
-        creates: ~/.config/gh/hosts.yml
+    - name: Install Python development tools
+      block:
+        - name: Install python3-venv
+          apt:
+            name: python3-venv
+            state: present
+            update_cache: yes
 
-    - name: Check if SSH key is already uploaded to GitHub
-      shell: gh ssh-key list --json title,key | grep -F "$(cat ~/.ssh/id_ed25519.pub | cut -d' ' -f2)"
-      register: gh_ssh_key_exists
-      ignore_errors: true
+        - name: Install python3-dev
+          apt:
+            name: python3-dev
+            state: present
+            update_cache: yes
 
-    - name: Upload SSH key to GitHub if not present
-      shell: gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
-      when: gh_ssh_key_exists.rc != 0
-      args:
-        creates: ~/.ssh/id_ed25519.pub
+        - name: Install Astral's uv
+          shell: curl -LsSf https://astral.sh/uv/install.sh | bash
+          args:
+            creates: ~/.cargo/bin/uv
+          become: no
+
+    - name: Configure user environment
+      block:
+        - name: Install bash-aliases
+          shell: curl -sS https://raw.githubusercontent.com/mariugul/bash-aliases/main/install.sh | bash -s -- --replace
+          args:
+            creates: ~/.bash_aliases
+          become: no
+
+        - name: Ensure SSH key exists
+          shell: |
+            ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)" -f ~/.ssh/id_ed25519 -N ""
+          args:
+            creates: ~/.ssh/id_ed25519
+          become: no
+
+    - name: Setup GitHub integration
+      block:
+        - name: Check if gh CLI is authenticated
+          shell: gh auth status --hostname github.com
+          register: gh_auth_status
+          ignore_errors: true
+
+        - name: Authenticate gh CLI with GitHub if not already
+          shell: gh auth login --hostname github.com --web
+          when: gh_auth_status.rc != 0
+          args:
+            creates: ~/.config/gh/hosts.yml
+
+        - name: Check if SSH key is already uploaded to GitHub
+          shell: gh ssh-key list --json title,key | grep -F "$(cat ~/.ssh/id_ed25519.pub | cut -d' ' -f2)"
+          register: gh_ssh_key_exists
+          ignore_errors: true
+
+        - name: Upload SSH key to GitHub if not present
+          shell: gh ssh-key add ~/.ssh/id_ed25519.pub --title "$(hostname)"
+          when: gh_ssh_key_exists.rc != 0
+          args:
+            creates: ~/.ssh/id_ed25519.pub
