@@ -27,7 +27,7 @@ fi
 # Install Ansible system-wide with apt
 if ! command -v ansible >/dev/null 2>&1; then
     echo "[*] Installing Ansible with apt..."
-    sudo apt-get install -y ansible
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ansible
 fi
 
 
