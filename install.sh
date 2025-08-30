@@ -15,10 +15,11 @@ if ! command -v pip3 >/dev/null 2>&1; then
     sudo apt-get install -y python3-pip
 fi
 
-# Install Ansible system-wide with pip
+# Install Ansible system-wide with apt
 if ! command -v ansible >/dev/null 2>&1; then
-    echo "[*] Installing Ansible with pip..."
-    sudo pip3 install ansible
+    echo "[*] Installing Ansible with apt..."
+    sudo apt-get update
+    sudo apt-get install -y ansible
 fi
 
 # Download system-setup.yml with curl
